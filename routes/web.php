@@ -22,6 +22,9 @@ Route::delete('/opcao/delete/{op_id}','App\Http\Controllers\OpcaoController@dele
 Route::get('/enquete/answers/{enq_id}','App\Http\Controllers\EnqueteController@showAnswers')
 ->name('enquete.answers');
 
+Route::get('/enquete/apuracao/{enq_id}','App\Http\Controllers\EnqueteController@showApuracao')
+->name('enquete.apuracao');
+
 Route::delete('/enquete/delete/{enq_id}','App\Http\Controllers\EnqueteController@delete')
 ->name('enquete.destroy');
 

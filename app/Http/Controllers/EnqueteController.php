@@ -3,8 +3,10 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use App\Models\Enquete;
 use App\Models\Opcao;
+
 
 class EnqueteController extends Controller
 {
@@ -39,13 +41,15 @@ class EnqueteController extends Controller
 
         foreach($request->opcoes as $opt)
         {
-            if(strlen($opt) === 0)
+            if(strlen($opt) == 0)
             {
                 array_push($errors, '*Nenhuma resposta pode ficar vazia');
                 break;
             }
         }
-
+        if($request->dt_inicio > $request->dt_fim){
+            array_push($errors, '*Data de Inicio não pode ser depois da Data do Fim');
+        }
         if(sizeof($errors) > 0)
             return redirect()
                     ->back()
@@ -92,13 +96,30 @@ class EnqueteController extends Controller
         //dd('2022-07-03' > date('Y-m-d')); 
 
         $answers = $enq_id->opcoes()
-        ->select('opcao.id','resposta','votacoes')
-        ->get();
+        ->select('opcao.id','resposta')
+        ->get();     
 
         return view('enquete.enqueteAnswers',[
             'enquete' => $enq_id,
             'respostas' => $answers
         ]);
+    }
+
+    public function showApuracao(Enquete $enq_id){
+        $answers = $enq_id->opcoes()
+        ->select('opcao.id','resposta','votacoes',DB::raw('(100*(votacoes/(SELECT SUM(votacoes) FROM opcao))) AS votacao_porcentagem'))
+        ->get();     
+
+        /*$answers = DB::table('opcao')
+               ->where('enquete_id', $enq_id->id) 
+               //->orderBy('id')
+               ->get(array('*',DB::raw('(SELECT SUM(votacoes) FROM opcao) AS total'))); // Only get text field*/
+        //dd($answers); 
+        $data = [
+            'enquete' => $enq_id,
+            'respostas' => $answers
+        ];
+        return view('enquete.enqueteApuracao',$data);      
     }
 
     public function renderizarRespostas(Enquete $enq_id)
